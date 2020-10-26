@@ -41,6 +41,12 @@
 #include "userosc.h"
 #include "waves.hpp"
 
+extern "C" {
+  float cmul(float x, float y) {
+    return x * y;
+  }
+}
+
 static Waves s_waves;
 
 void OSC_INIT(uint32_t platform, uint32_t api)
@@ -114,7 +120,9 @@ void OSC_CYCLE(const user_osc_param_t * const params,
     
     sig = prelpf.process_fo(sig);
     sig += s.dither * osc_white();
-    sig = si_roundf(sig * s.bitres) * s.bitresrcp;
+    sig = rmul(si_roundf(sig * s.bitres), s.bitresrcp);
+    //sig = cmul(si_roundf(sig * s.bitres), s.bitresrcp);
+    //sig = si_roundf(sig * s.bitres) * s.bitresrcp;
     sig = postlpf.process_fo(sig);
     sig = osc_softclipf(0.125f, sig);
     
@@ -145,8 +153,6 @@ void OSC_NOTEOFF(const user_osc_param_t * const params)
   (void)params;
 }
 
-extern "C" uint8_t radd(uint8_t x, uint8_t y);
-
 void OSC_PARAM(uint16_t index, uint16_t value)
 { 
   Waves::Params &p = s_waves.params;
@@ -157,8 +163,7 @@ void OSC_PARAM(uint16_t index, uint16_t value)
     // wave 0
     // select parameter
     {
-      static const uint8_t cnt = k_waves_a_cnt + radd(k_waves_b_cnt, k_waves_c_cnt);
-      //static const uint8_t cnt = k_waves_a_cnt + k_waves_b_cnt + k_waves_c_cnt;
+      static const uint8_t cnt = k_waves_a_cnt + k_waves_b_cnt + k_waves_c_cnt;
       p.wave0 = value % cnt;
       s.flags |= Waves::k_flag_wave0;
     }

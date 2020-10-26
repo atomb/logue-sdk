@@ -42,6 +42,10 @@
 #include "userosc.h"
 #include "biquad.hpp"
 
+extern "C" {
+  float rmul(float x, float y);
+}
+
 struct Waves {
 
   enum {

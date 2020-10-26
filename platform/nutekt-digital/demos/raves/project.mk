@@ -14,4 +14,4 @@ UDEFS = -fno-threadsafe-statics
 
 ULIBS = -lraves
 
-ULIBDIR = rust/target/armv7r-none-eabihf/release
+ULIBDIR = rust/target/thumbv7em-none-eabihf/release

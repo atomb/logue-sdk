@@ -8,6 +8,6 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 
 #[no_mangle]
-pub extern "C" fn radd(x: i8, y: i8) -> i8 {
-    return x + y
+pub extern "C" fn rmul(x: f32, y: f32) -> f32 {
+    return x * y
 }
