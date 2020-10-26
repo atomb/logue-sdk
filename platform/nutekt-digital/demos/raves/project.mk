@@ -2,7 +2,7 @@
 # Project Customization
 # #############################################################################
 
-PROJECT = waves
+PROJECT = raves
 
 UCSRC = 
 
@@ -12,7 +12,6 @@ UINCDIR =
 
 UDEFS = -fno-threadsafe-statics
 
-#ULIBS = -lfoo
-ULIBS =
+ULIBS = -lraves
 
-ULIBDIR = rust
+ULIBDIR = rust/target/armv7r-none-eabihf/release
