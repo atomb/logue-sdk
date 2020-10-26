@@ -18,5 +18,5 @@ overflow-checks = false
 [profile.release]
 panic = "abort" # disable stack unwinding on panic
 lto = true
-opt-level = "s"
+opt-level = 3
 overflow-checks = false

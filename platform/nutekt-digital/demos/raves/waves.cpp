@@ -41,12 +41,6 @@
 #include "userosc.h"
 #include "waves.hpp"
 
-extern "C" {
-  float cmul(float x, float y) {
-    return x * y;
-  }
-}
-
 static Waves s_waves;
 
 void OSC_INIT(uint32_t platform, uint32_t api)
@@ -120,8 +114,7 @@ void OSC_CYCLE(const user_osc_param_t * const params,
     
     sig = prelpf.process_fo(sig);
     sig += s.dither * osc_white();
-    sig = rmul(si_roundf(sig * s.bitres), s.bitresrcp);
-    //sig = cmul(si_roundf(sig * s.bitres), s.bitresrcp);
+    sig = r_mul_round(sig, s.bitres, s.bitresrcp);
     //sig = si_roundf(sig * s.bitres) * s.bitresrcp;
     sig = postlpf.process_fo(sig);
     sig = osc_softclipf(0.125f, sig);

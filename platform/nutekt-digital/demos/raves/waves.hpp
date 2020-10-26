@@ -43,7 +43,7 @@
 #include "biquad.hpp"
 
 extern "C" {
-  float rmul(float x, float y);
+  float r_mul_round(float sig, float bitres, float bitresrcp);
 }
 
 struct Waves {
