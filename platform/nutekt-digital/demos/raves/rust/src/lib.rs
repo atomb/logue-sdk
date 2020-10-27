@@ -4,6 +4,8 @@ use core::panic::PanicInfo;
 use core::ptr;
 use micromath::F32Ext;
 
+pub mod biquad;
+
 /// This function is called on panic.
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -134,13 +136,17 @@ impl RavesParams {
 pub struct Raves {
     state: RavesState,
     params: RavesParams,
+    prelpf: biquad::BiQuad,
+    postlpf: biquad::BiQuad,
 }
 
 impl Raves {
     pub const fn new() -> Self {
         Raves {
             params: RavesParams::new(),
-            state: RavesState::new()
+            state: RavesState::new(),
+            prelpf: biquad::BiQuad::new(),
+            postlpf: biquad::BiQuad::new(),
         }
     }
 }
