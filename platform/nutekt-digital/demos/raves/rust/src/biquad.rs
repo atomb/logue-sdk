@@ -16,6 +16,24 @@ impl Coeffs {
             fb2: 0.0,
         }
     }
+
+    pub fn set_pole_lp(&mut self, pole: f32) {
+        self.ff0 = 1.0 - pole;
+        self.ff1 = 0.0;
+        self.ff2 = 0.0;
+        self.fb1 = -pole;
+        self.fb2 = 0.0;
+    }
+
+    pub fn set_folp(&mut self, k: f32) {
+        let kp1 = k + 1.0;
+        let km1 = k - 1.0;
+        self.ff0 = k / kp1;
+        self.ff1 = k / kp1;
+        self.ff2 = 0.0;
+        self.fb1 = km1 / kp1;
+        self.fb2 = 0.0;
+    }
 }
 
 pub struct BiQuad {
@@ -31,5 +49,13 @@ impl BiQuad {
             z1: 0.0,
             z2: 0.0,
         }
+    }
+
+    pub fn process_fo(&mut self, xn: f32) -> f32 {
+        let acc = self.coeffs.ff0 * xn + self.z1;
+        self.z1 = self.coeffs.ff1 * xn;
+        self.z1 -= self.coeffs.fb1 * acc;
+        return acc;
+
     }
 }
