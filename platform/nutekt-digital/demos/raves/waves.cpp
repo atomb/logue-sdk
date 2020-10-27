@@ -45,8 +45,9 @@ static Waves s_waves;
 
 void OSC_INIT(uint32_t platform, uint32_t api)
 {
-  (void)platform;
-  (void)api;
+  r_osc_init(&s_waves, platform, api);
+  //(void)platform;
+  //(void)api;
 }
 
 void OSC_CYCLE(const user_osc_param_t * const params,
@@ -138,16 +139,20 @@ void OSC_CYCLE(const user_osc_param_t * const params,
 
 void OSC_NOTEON(const user_osc_param_t * const params)
 {
-  s_waves.state.flags |= Waves::k_flag_reset;
+  r_osc_noteon(&s_waves, params);
+  //s_waves.state.flags |= Waves::k_flag_reset;
 }
 
 void OSC_NOTEOFF(const user_osc_param_t * const params)
 {
-  (void)params;
+  r_osc_noteoff(&s_waves, params);
+  //(void)params;
 }
 
 void OSC_PARAM(uint16_t index, uint16_t value)
 { 
+  r_osc_param(&s_waves, index, value);
+  /*
   Waves::Params &p = s_waves.params;
   Waves::State &s = s_waves.state;
 
@@ -211,5 +216,6 @@ void OSC_PARAM(uint16_t index, uint16_t value)
   default:
     break;
   }
+  */
 }
 
