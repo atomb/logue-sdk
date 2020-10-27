@@ -200,6 +200,7 @@ struct Waves {
 
 extern "C" {
   float r_mul_round(float sig, float bitres, float bitresrcp);
+  float r_osc_w0f_for_note(uint8_t note, uint8_t mod);
   void r_osc_init(Waves *waves, uint32_t platform, uint32_t api);
   void r_osc_param(Waves *waves, uint16_t index, uint16_t value);
   void r_osc_noteon(Waves *waves, const user_osc_param_t * const params);
