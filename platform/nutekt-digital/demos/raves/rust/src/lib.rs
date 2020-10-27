@@ -1,6 +1,7 @@
 #![no_std]
-use core::mem::transmute;
+use core::f32;
 use core::panic::PanicInfo;
+use micromath::F32Ext;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -27,24 +28,23 @@ struct RavesState {
     bitresrcp: f32,
     imperfection: f32,
     flags: u8,
+}
 
+#[repr(C)]
+struct RavesParams {
+    submix: f32,
+    ringmix: f32,
+    bitcrush: f32,
+    shape: f32,
+    shiftshape: f32,
+    wave0: u8,
+    wave1: u8,
+    subwave: u8,
+    padding: u8,
 }
 */
 
-fn f32_copysign(x: f32, y: f32) -> f32 {
-    unsafe {
-        let xi = transmute::<f32, u32>(x);
-        let yi = transmute::<f32, u32>(y);
-        let zi = (xi & 0x7fffffff) | (yi & 0x80000000);
-        return transmute::<u32, f32>(zi);
-    }
-}
-
-fn f32_round(x: f32) -> f32 {
-    return ((x + f32_copysign(0.5, x)) as i32) as f32;
-}
-
 #[no_mangle]
 pub extern "C" fn r_mul_round(sig: f32, bitres: f32, bitresrcp: f32) -> f32 {
-    return f32_round(sig * bitres) * bitresrcp;
+    return (sig * bitres).round() * bitresrcp;
 }
