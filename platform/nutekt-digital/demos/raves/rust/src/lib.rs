@@ -37,9 +37,9 @@ pub enum UserOscParamId {
 
 #[repr(C)]
 pub struct RavesState {
-    wave0: *const f32,
-    wave1: *const f32,
-    subwave: *const f32,
+    wave0: *const [f32; K_WAVES_LUT_SIZE],
+    wave1: *const [f32; K_WAVES_LUT_SIZE],
+    subwave: *const [f32; K_WAVES_LUT_SIZE],
     phi0: f32,
     phi1: f32,
     phisub: f32,
@@ -143,7 +143,48 @@ impl Raves {
         self.state.w0sub = 0.5 * w0new + drift * 3.125e-006;
     }
 
-    pub fn update_waves(&mut self, flags: u8) {
+    pub fn update_waves(&mut self, flags: u16) {
+        if (flags & RavesFlags::Wave0 as u16) != 0 {
+            let k_a_thr = K_WAVES_A_CNT;
+            let k_b_thr = k_a_thr + K_WAVES_B_CNT;
+            let k_c_thr = k_b_thr + K_WAVES_C_CNT;
+
+            let mut idx = self.params.wave0 as usize;
+
+            if idx < k_a_thr {
+                self.state.wave0 = unsafe { wavesA[idx] };
+            } else if idx < k_b_thr {
+                idx -= k_a_thr;
+                self.state.wave0 = unsafe { wavesB[idx] };
+            } else if idx < k_c_thr {
+                idx -= k_b_thr;
+                self.state.wave0 = unsafe { wavesC[idx] };
+            } else {
+                // Would be OOB, so do nothing
+            }
+        }
+        if (flags & RavesFlags::Wave1 as u16) != 0 {
+            let k_d_thr = K_WAVES_D_CNT;
+            let k_e_thr = k_d_thr + K_WAVES_E_CNT;
+            let k_f_thr = k_e_thr + K_WAVES_F_CNT;
+
+            let mut idx = self.params.wave1 as usize;
+
+            if idx < k_d_thr {
+                self.state.wave1 = unsafe { wavesD[idx] };
+            } else if idx < k_e_thr {
+                idx -= k_d_thr;
+                self.state.wave1 = unsafe { wavesE[idx] };
+            } else if idx < k_f_thr {
+                idx -= k_e_thr;
+                self.state.wave1 = unsafe { wavesF[idx] };
+            } else {
+                // Would be OOB, so do nothing
+            }
+        }
+        if (flags & RavesFlags::SubWave as u16) != 0 {
+            self.state.subwave = unsafe { wavesA[self.params.subwave as usize] };
+        }
     }
 }
 
@@ -173,6 +214,11 @@ pub extern "C" fn r_update_pitch(raves: &mut Raves, w0: f32) {
 }
 
 #[no_mangle]
+pub extern "C" fn r_update_waves(raves: &mut Raves, flags: u16) {
+    raves.update_waves(flags);
+}
+
+#[no_mangle]
 pub extern "C" fn r_osc_init(_raves: &mut Raves, _platform: u32, _api: u32) {
     /*
     unsafe {
@@ -191,7 +237,7 @@ pub extern "C" fn r_osc_cycle(raves: &mut Raves, params: &UserOscParams,
     let plo = (params.pitch & 0xFF) as u8;
     let flags = raves.state.flags;
     raves.update_pitch(r_osc_w0f_for_note(phi, plo));
-    raves.update_waves(flags);
+    raves.update_waves(flags as u16);
 
     let p : &RavesParams = &raves.params;
 
@@ -233,13 +279,14 @@ pub extern "C" fn r_osc_cycle(raves: &mut Raves, params: &UserOscParams,
     let prelpf = &mut raves.prelpf;
     let postlpf = &mut raves.postlpf;
 
+
     for i in 0..frames {
         let wavemix = clipminmaxf(0.005, p.shape + lfoz, 0.995);
-        let mut sig = (1.0 - wavemix); // TODO: * osc_wave_scanf(s.wave0, phi0);
+        let mut sig = (1.0 - wavemix) * osc_wave_scanf(ptr_as_ref(s.wave0), phi0);
 
-        sig += wavemix; // TODO: * osc_wave_scanf(s.wave1, phi1);
+        sig += wavemix * osc_wave_scanf(ptr_as_ref(s.wave1), phi1);
 
-        let subsig = 0.0; // TODO: osc_wave_scanf(s.subwave, phisub);
+        let subsig = osc_wave_scanf(ptr_as_ref(s.subwave), phisub);
 
         sig = (1.0 - submix) * sig + submix * subsig;
         sig = (1.0 - ringmix) * sig + ringmix * (subsig * sig);
@@ -251,7 +298,10 @@ pub extern "C" fn r_osc_cycle(raves: &mut Raves, params: &UserOscParams,
         sig = postlpf.process_fo(sig);
         sig = osc_softclipf(0.125, sig);
 
-        // TODO: yn[i] = f32_to_q31(sig);
+        unsafe {
+            let y = yn.offset(i as isize);
+            *y = f32_to_q31(sig);
+        }
 
         phi0 += s.w00;
         phi0 -= (phi0 as u32) as f32;

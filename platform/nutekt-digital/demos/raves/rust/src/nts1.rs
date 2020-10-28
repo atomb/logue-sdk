@@ -15,6 +15,8 @@ pub const K_NOTE_MAX_HZ: f32 = 23679.643054f32;
 
 pub const K_WAVES_SIZE_EXP : usize = 7;
 pub const K_WAVES_SIZE : usize = 1 << K_WAVES_SIZE_EXP;
+pub const K_WAVES_U32_SHIFT : usize = 24;
+pub const K_WAVES_FRRECIP : f32 = 5.96046447753906e-008;
 pub const K_WAVES_MASK : usize = K_WAVES_SIZE - 1;
 pub const K_WAVES_LUT_SIZE : usize = K_WAVES_SIZE + 1;
 
@@ -34,9 +36,15 @@ pub struct UserOscParams {
     pub reserved0: [u16; 3],
 }
 
+type WaveLUT = [f32; K_WAVES_LUT_SIZE];
+
 extern "C" {
-    pub static wavesA: [*const f32; K_WAVES_A_CNT];
-    pub static wavesD: [*const f32; K_WAVES_D_CNT];
+    pub static wavesA: [*const WaveLUT; K_WAVES_A_CNT];
+    pub static wavesB: [*const WaveLUT; K_WAVES_B_CNT];
+    pub static wavesC: [*const WaveLUT; K_WAVES_C_CNT];
+    pub static wavesD: [*const WaveLUT; K_WAVES_D_CNT];
+    pub static wavesE: [*const WaveLUT; K_WAVES_E_CNT];
+    pub static wavesF: [*const WaveLUT; K_WAVES_F_CNT];
     pub static midi_to_hz_lut_f: [f32; K_MIDI_TO_HZ_SIZE];
     pub static bitres_lut_f: [f32; K_BITRES_LUT_SIZE];
     pub fn _osc_white() -> f32;
@@ -46,7 +54,11 @@ pub fn param_val_to_f32(x: u16) -> f32 {
     x as f32 * 9.77517106549365e-004f32
 }
 
-pub fn osc_wave_scanf(w: [f32; K_WAVES_LUT_SIZE], x: f32) -> f32{
+pub fn ptr_as_ref<T>(p: *const T) -> &'static T {
+    unsafe { p.as_ref().unwrap() }
+}
+
+pub fn osc_wave_scanf(w: &WaveLUT, x: f32) -> f32{
     let p = x - (x as u32) as f32;
     let x0f = p * K_WAVES_SIZE as f32;
     let x0 = x0f as usize & K_WAVES_MASK;
