@@ -37,7 +37,7 @@ impl Coeffs {
 }
 
 pub struct BiQuad {
-    coeffs: Coeffs,
+    pub coeffs: Coeffs,
     z1: f32,
     z2: f32,
 }

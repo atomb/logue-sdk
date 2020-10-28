@@ -77,6 +77,13 @@ impl RavesState {
         }
     }
 
+    pub fn init(&mut self) {
+        self.wave0 = unsafe { wavesA[0] };
+        self.wave1 = unsafe { wavesD[0] };
+        self.subwave = unsafe { wavesA[0] };
+        self.imperfection = unsafe { _osc_white() } * 1.0417e-006;
+    }
+
     pub fn reset(&mut self) {
         self.phi0 = 0.0;
         self.phi1 = 0.0;
@@ -131,6 +138,13 @@ impl Raves {
             prelpf: biquad::BiQuad::new(),
             postlpf: biquad::BiQuad::new(),
         }
+    }
+
+    pub fn init(&mut self) {
+        self.params = RavesParams::new();
+        self.state = RavesState::new();
+        self.prelpf.coeffs.set_pole_lp(0.8);
+        self.postlpf.coeffs.set_folp(osc_tanpif(0.45));
     }
 
     pub fn update_pitch(&mut self, w0: f32) {
