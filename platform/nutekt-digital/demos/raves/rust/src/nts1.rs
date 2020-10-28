@@ -94,6 +94,13 @@ pub fn osc_tanpif(x: f32) -> f32 {
     return linintf(idxf - idx as f32, y0, y1);
 }
 
+pub fn r_osc_w0f_for_note(note: u8, modulation: u8) -> f32{
+    let f0 = osc_notehzf(note);
+    let f1 = osc_notehzf(note + 1);
+    let f = clipmaxf(linintf(modulation as f32 * K_NOTE_MOD_FSCALE, f0, f1), K_NOTE_MAX_HZ);
+    return f * SAMPLERATE_RECIP;
+}
+
 pub fn osc_notehzf(note: u8) -> f32 {
     let idx = clipmaxnote(note, K_MIDI_TO_HZ_SIZE - 1);
     return unsafe { midi_to_hz_lut_f[idx] };

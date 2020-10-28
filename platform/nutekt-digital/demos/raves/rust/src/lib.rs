@@ -205,14 +205,6 @@ impl Raves {
 //static mut S_RAVES : Raves = Raves::new();
 
 #[no_mangle]
-pub extern "C" fn r_osc_w0f_for_note(note: u8, modulation: u8) -> f32{
-    let f0 = osc_notehzf(note);
-    let f1 = osc_notehzf(note + 1);
-    let f = clipmaxf(linintf(modulation as f32 * K_NOTE_MOD_FSCALE, f0, f1), K_NOTE_MAX_HZ);
-    return f * SAMPLERATE_RECIP;
-}
-
-#[no_mangle]
 pub extern "C" fn r_osc_init(_raves: &mut Raves, _platform: u32, _api: u32) {
     /*
     unsafe {
