@@ -64,7 +64,8 @@ void OSC_CYCLE(const user_osc_param_t * const params,
     s.flags = Waves::k_flags_none;
     
     //s_waves.updatePitch(osc_w0f_for_note((params->pitch)>>8, params->pitch & 0xFF));
-    s_waves.updatePitch(r_osc_w0f_for_note((params->pitch)>>8, params->pitch & 0xFF));
+    //s_waves.updatePitch(r_osc_w0f_for_note((params->pitch)>>8, params->pitch & 0xFF));
+    r_update_pitch(&s_waves, r_osc_w0f_for_note((params->pitch)>>8, params->pitch & 0xFF));
     
     s_waves.updateWaves(flags);
     

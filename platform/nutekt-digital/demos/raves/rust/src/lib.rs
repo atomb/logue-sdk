@@ -153,6 +153,16 @@ impl Raves {
             postlpf: biquad::BiQuad::new(),
         }
     }
+
+    pub fn update_pitch(&mut self, w0: f32) {
+        let w0new = w0 + self.state.imperfection;
+        let drift = self.params.shiftshape;
+        self.state.w00 = w0new;
+        // Alt osc with slight drift (0.25Hz@48KHz)
+        self.state.w01 = w0new + drift * 5.20833333333333e-006f32;
+        // Sub one octave and a phase drift (0.15Hz@48KHz)
+        self.state.w0sub = 0.5f32 * w0new + drift * 3.125e-006f32;
+    }
 }
 
 static mut S_RAVES : Raves = Raves::new();
@@ -199,6 +209,11 @@ pub extern "C" fn r_osc_w0f_for_note(note: u8, modulation: u8) -> f32{
 #[no_mangle]
 pub extern "C" fn r_mul_round(sig: f32, bitres: f32, bitresrcp: f32) -> f32 {
     return (sig * bitres).round() * bitresrcp;
+}
+
+#[no_mangle]
+pub extern "C" fn r_update_pitch(raves: &mut Raves, w0: f32) {
+    raves.update_pitch(w0);
 }
 
 #[no_mangle]
