@@ -143,6 +143,7 @@ impl Raves {
     pub fn init(&mut self) {
         self.params = RavesParams::new();
         self.state = RavesState::new();
+        self.state.init();
         self.prelpf.coeffs.set_pole_lp(0.8);
         self.postlpf.coeffs.set_folp(osc_tanpif(0.45));
     }
