@@ -116,7 +116,7 @@ void OSC_CYCLE(const user_osc_param_t * const params,
     sig = clip1m1f(sig);
     
     sig = prelpf.process_fo(sig);
-    sig += s.dither * osc_white();
+    sig += s.dither * r_osc_white();
     sig = r_mul_round(sig, s.bitres, s.bitresrcp);
     //sig = si_roundf(sig * s.bitres) * s.bitresrcp;
     sig = postlpf.process_fo(sig);

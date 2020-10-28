@@ -149,6 +149,11 @@ pub extern "C" fn r_osc_w0f_for_note(note: u8, modulation: u8) -> f32{
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn r_osc_white() -> f32{
+    _osc_white()
+}
+
+#[no_mangle]
 pub extern "C" fn r_mul_round(sig: f32, bitres: f32, bitresrcp: f32) -> f32 {
     return (sig * bitres).round() * bitresrcp;
 }

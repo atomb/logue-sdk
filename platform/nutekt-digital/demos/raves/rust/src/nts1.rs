@@ -27,6 +27,7 @@ extern "C" {
     pub static wavesA: [*const f32; k_waves_a_cnt];
     pub static wavesD: [*const f32; k_waves_d_cnt];
     pub static midi_to_hz_lut_f: [f32; k_midi_to_hz_size];
+    pub fn _osc_white() -> f32;
 }
 
 pub fn param_val_to_f32(x: u16) -> f32 {
