@@ -213,32 +213,10 @@ pub extern "C" fn r_osc_w0f_for_note(note: u8, modulation: u8) -> f32{
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn r_osc_white() -> f32{
-    _osc_white()
-}
-
-#[no_mangle]
-pub extern "C" fn r_mul_round(sig: f32, bitres: f32, bitresrcp: f32) -> f32 {
-    return (sig * bitres).round() * bitresrcp;
-}
-
-#[no_mangle]
-pub extern "C" fn r_update_pitch(raves: &mut Raves, w0: f32) {
-    raves.update_pitch(w0);
-}
-
-#[no_mangle]
-pub extern "C" fn r_update_waves(raves: &mut Raves, flags: u16) {
-    raves.update_waves(flags);
-}
-
-#[no_mangle]
 pub extern "C" fn r_osc_init(_raves: &mut Raves, _platform: u32, _api: u32) {
     /*
     unsafe {
-        S_RAVES.state.wave0 = wavesA;
-        S_RAVES.state.wave1 = wavesD;
-        S_RAVES.state.subwave = wavesA;
+        S_RAVES.init();
     }
     */
 }
@@ -384,12 +362,3 @@ pub extern "C" fn r_osc_param(raves: &mut Raves, index: UserOscParamId, value: u
         },
     }
 }
-
-/*
-#[no_mangle]
-pub extern "C" fn r_noteon(_params: *const UserOscParams) {
-    let s: &mut RavesState = unsafe { &mut S_RAVES.state };
-    let p: &mut RavesParams = unsafe { &mut S_RAVES.params };
-}
-
-*/
