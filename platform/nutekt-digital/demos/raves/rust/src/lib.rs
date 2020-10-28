@@ -243,6 +243,7 @@ pub extern "C" fn r_osc_init(_raves: &mut Raves, _platform: u32, _api: u32) {
     */
 }
 
+#[no_mangle]
 pub extern "C" fn r_osc_cycle(raves: &mut Raves, params: &UserOscParams,
                               yn: *mut i32, frames: u32) {
 
