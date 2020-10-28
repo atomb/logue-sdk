@@ -4,29 +4,41 @@ pub const SAMPLERATE_RECIP: f32 = 2.08333333333333e-005f32;
 pub const SR440: f32            = 9.16666666666666e-003f32;
 pub const SR220: f32            = 4.58333333333333e-003f32;
 
-pub const k_waves_a_cnt : usize = 16;
-pub const k_waves_b_cnt : usize = 16;
-pub const k_waves_c_cnt : usize = 14;
-pub const k_waves_d_cnt : usize = 13;
-pub const k_waves_e_cnt : usize = 15;
-pub const k_waves_f_cnt : usize = 16;
-pub const k_midi_to_hz_size: usize = 152;
-pub const k_note_mod_fscale: f32 = 0.00392156862745098f32;
-pub const k_note_max_hz: f32 = 23679.643054f32;
+pub const K_BITRES_SIZE_EXP : usize = 7;
+pub const K_BITRES_SIZE : usize = 1 << K_BITRES_SIZE_EXP;
+pub const K_BITRES_MASK : usize = K_BITRES_SIZE - 1;
+pub const K_BITRES_LUT_SIZE : usize = K_BITRES_SIZE + 1;
+
+pub const K_MIDI_TO_HZ_SIZE: usize = 152;
+pub const K_NOTE_MOD_FSCALE: f32 = 0.00392156862745098f32;
+pub const K_NOTE_MAX_HZ: f32 = 23679.643054f32;
+
+pub const K_WAVES_SIZE_EXP : usize = 7;
+pub const K_WAVES_SIZE : usize = 1 << K_WAVES_SIZE_EXP;
+pub const K_WAVES_MASK : usize = K_WAVES_SIZE - 1;
+pub const K_WAVES_LUT_SIZE : usize = K_WAVES_SIZE + 1;
+
+pub const K_WAVES_A_CNT : usize = 16;
+pub const K_WAVES_B_CNT : usize = 16;
+pub const K_WAVES_C_CNT : usize = 14;
+pub const K_WAVES_D_CNT : usize = 13;
+pub const K_WAVES_E_CNT : usize = 15;
+pub const K_WAVES_F_CNT : usize = 16;
 
 #[repr(C)]
 pub struct UserOscParams {
-    shape_lfo: i32,
-    pitch: u16,
-    cutoff: u16,
-    resonance: u16,
-    reserved0: [u16; 3],
+    pub shape_lfo: i32,
+    pub pitch: u16,
+    pub cutoff: u16,
+    pub resonance: u16,
+    pub reserved0: [u16; 3],
 }
 
 extern "C" {
-    pub static wavesA: [*const f32; k_waves_a_cnt];
-    pub static wavesD: [*const f32; k_waves_d_cnt];
-    pub static midi_to_hz_lut_f: [f32; k_midi_to_hz_size];
+    pub static wavesA: [*const f32; K_WAVES_A_CNT];
+    pub static wavesD: [*const f32; K_WAVES_D_CNT];
+    pub static midi_to_hz_lut_f: [f32; K_MIDI_TO_HZ_SIZE];
+    pub static bitres_lut_f: [f32; K_BITRES_LUT_SIZE];
     pub fn _osc_white() -> f32;
 }
 
@@ -34,8 +46,28 @@ pub fn param_val_to_f32(x: u16) -> f32 {
     x as f32 * 9.77517106549365e-004f32
 }
 
+pub fn osc_wave_scanf(w: [f32; K_WAVES_LUT_SIZE], x: f32) -> f32{
+    let p = x - (x as u32) as f32;
+    let x0f = p * K_WAVES_SIZE as f32;
+    let x0 = x0f as usize & K_WAVES_MASK;
+    let x1 = (x0 + 1) & K_WAVES_MASK;
+    return linintf(x0f - (x0f as u32) as f32, w[x0], w[x1]);
+}
+
+pub fn osc_softclipf(c: f32, x: f32) -> f32 {
+    let x = clip1m1f(x);
+    return x - c * (x*x*x);
+}
+
+pub fn osc_bitresf(x: f32) -> f32 {
+    let xf = x * K_BITRES_SIZE as f32;
+    let xi = xf as usize;
+    let y0 = unsafe { bitres_lut_f[xi] };
+    let y1 = unsafe { bitres_lut_f[xi + 1] };
+    return linintf(xf - xi as f32, y0, y1);
+}
+
 pub fn osc_notehzf(note: u8) -> f32 {
-    unsafe {
-        return midi_to_hz_lut_f[clipmaxnote(note, k_midi_to_hz_size - 1)];
-    }
+    let idx = clipmaxnote(note, K_MIDI_TO_HZ_SIZE - 1);
+    return unsafe { midi_to_hz_lut_f[idx] };
 }

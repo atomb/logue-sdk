@@ -1,9 +1,7 @@
 #![no_std]
-#![no_main]
 
 use panic_halt as _;
 use core::f32;
-use core::panic::PanicInfo;
 use core::ptr;
 use micromath::F32Ext;
 
@@ -78,6 +76,14 @@ impl RavesState {
             flags: RavesFlags::None as u8,
         }
     }
+
+    pub fn reset(&mut self) {
+        self.phi0 = 0.0;
+        self.phi1 = 0.0;
+        self.phisub = 0.0;
+        self.lfo = self.lfoz;
+    }
+
 }
 
 #[repr(C)]
@@ -132,19 +138,22 @@ impl Raves {
         let drift = self.params.shiftshape;
         self.state.w00 = w0new;
         // Alt osc with slight drift (0.25Hz@48KHz)
-        self.state.w01 = w0new + drift * 5.20833333333333e-006f32;
+        self.state.w01 = w0new + drift * 5.20833333333333e-006;
         // Sub one octave and a phase drift (0.15Hz@48KHz)
-        self.state.w0sub = 0.5f32 * w0new + drift * 3.125e-006f32;
+        self.state.w0sub = 0.5 * w0new + drift * 3.125e-006;
+    }
+
+    pub fn update_waves(&mut self, flags: u8) {
     }
 }
 
-static mut S_RAVES : Raves = Raves::new();
+//static mut S_RAVES : Raves = Raves::new();
 
 #[no_mangle]
 pub extern "C" fn r_osc_w0f_for_note(note: u8, modulation: u8) -> f32{
     let f0 = osc_notehzf(note);
     let f1 = osc_notehzf(note + 1);
-    let f = clipmaxf(linintf(modulation as f32 * k_note_mod_fscale, f0, f1), k_note_max_hz);
+    let f = clipmaxf(linintf(modulation as f32 * K_NOTE_MOD_FSCALE, f0, f1), K_NOTE_MAX_HZ);
     return f * SAMPLERATE_RECIP;
 }
 
@@ -174,13 +183,102 @@ pub extern "C" fn r_osc_init(_raves: &mut Raves, _platform: u32, _api: u32) {
     */
 }
 
+pub extern "C" fn r_osc_cycle(raves: &mut Raves, params: &UserOscParams,
+                              yn: *mut i32, frames: u32) {
+
+    // Set pitch based on input parameters, waves based on flags
+    let phi = (params.pitch >> 8) as u8;
+    let plo = (params.pitch & 0xFF) as u8;
+    let flags = raves.state.flags;
+    raves.update_pitch(r_osc_w0f_for_note(phi, plo));
+    raves.update_waves(flags);
+
+    let p : &RavesParams = &raves.params;
+
+    // Preliminary state update
+    {
+        let sm : &mut RavesState = &mut raves.state;
+
+        if (flags as u8) & (RavesFlags::Reset as u8) != 0 {
+            sm.reset();
+        }
+
+        if (flags as u8) & (RavesFlags::BitCrush as u8) != 0 {
+            sm.dither = p.bitcrush * 2e-008;
+            sm.bitres = osc_bitresf(p.bitcrush);
+            sm.bitresrcp = 1.0 / sm.bitres;
+        }
+
+        sm.lfo = q31_to_f32(params.shape_lfo);
+        sm.flags = RavesFlags::None as u8;
+    }
+
+    // Pure signal calculation
+    let s : &RavesState = &raves.state;
+    let mut phi0 = s.phi0;
+    let mut phi1 = s.phi1;
+    let mut phisub = s.phisub;
+    let mut lfoz = s.lfoz;
+
+    let lfo_inc = (s.lfo - lfoz) / frames as f32;
+
+    //let ditheramt = p.bitcrush * 2e-008;
+
+    //let bitres = osc_bitresf(p.bitcrush);
+    //let bitres_recip = 1.0 / bitres;
+
+    let submix = p.submix;
+    let ringmix = p.ringmix;
+
+    let prelpf = &mut raves.prelpf;
+    let postlpf = &mut raves.postlpf;
+
+    for i in 0..frames {
+        let wavemix = clipminmaxf(0.005, p.shape + lfoz, 0.995);
+        let mut sig = (1.0 - wavemix); // TODO: * osc_wave_scanf(s.wave0, phi0);
+
+        sig += wavemix; // TODO: * osc_wave_scanf(s.wave1, phi1);
+
+        let subsig = 0.0; // TODO: osc_wave_scanf(s.subwave, phisub);
+
+        sig = (1.0 - submix) * sig + submix * subsig;
+        sig = (1.0 - ringmix) * sig + ringmix * (subsig * sig);
+        sig = clip1m1f(sig);
+
+        sig = prelpf.process_fo(sig);
+        sig += s.dither * unsafe { _osc_white() };
+        sig = (sig * s.bitres).round() * s.bitresrcp;
+        sig = postlpf.process_fo(sig);
+        sig = osc_softclipf(0.125, sig);
+
+        // TODO: yn[i] = f32_to_q31(sig);
+
+        phi0 += s.w00;
+        phi0 -= (phi0 as u32) as f32;
+        phi1 += s.w01;
+        phi1 -= (phi1 as u32) as f32;
+        phisub += s.w0sub;
+        phisub -= (phisub as u32) as f32;
+        lfoz += lfo_inc;
+    }
+
+    // Final state update
+    {
+        let sm : &mut RavesState = &mut raves.state;
+        sm.phi0 = phi0;
+        sm.phi1 = phi1;
+        sm.phisub = phisub;
+        sm.lfoz = lfoz;
+    }
+}
+
 #[no_mangle]
-pub extern "C" fn r_osc_noteon(raves: &mut Raves, params: &UserOscParams) {
+pub extern "C" fn r_osc_noteon(raves: &mut Raves, _params: &UserOscParams) {
     raves.state.flags |= RavesFlags::Reset as u8;
 }
 
 #[no_mangle]
-pub extern "C" fn r_osc_noteoff(raves: &mut Raves, params: &UserOscParams) {
+pub extern "C" fn r_osc_noteoff(_raves: &mut Raves, _params: &UserOscParams) {
 }
 
 #[no_mangle]
@@ -190,17 +288,17 @@ pub extern "C" fn r_osc_param(raves: &mut Raves, index: UserOscParamId, value: u
 
     match index {
         UserOscParamId::Id1 => {
-            let cnt : usize = k_waves_a_cnt + k_waves_b_cnt + k_waves_c_cnt;
+            let cnt : usize = K_WAVES_A_CNT + K_WAVES_B_CNT + K_WAVES_C_CNT;
             p.wave1 = (value % cnt as u16) as u8;
             s.flags |= RavesFlags::Wave0 as u8;
         },
         UserOscParamId::Id2 => {
-            let cnt : usize = k_waves_d_cnt + k_waves_e_cnt + k_waves_f_cnt;
+            let cnt : usize = K_WAVES_D_CNT + K_WAVES_E_CNT + K_WAVES_F_CNT;
             p.wave1 = (value % cnt as u16) as u8;
             s.flags |= RavesFlags::Wave1 as u8;
         },
         UserOscParamId::Id3 => {
-            p.subwave = (value % k_waves_a_cnt as u16) as u8;
+            p.subwave = (value % K_WAVES_A_CNT as u16) as u8;
             s.flags |= RavesFlags::SubWave as u8;
         },
         UserOscParamId::Id4 => {
