@@ -1,45 +1,18 @@
 #![no_std]
+#![no_main]
+
+use panic_halt as _;
 use core::f32;
 use core::panic::PanicInfo;
 use core::ptr;
 use micromath::F32Ext;
 
 pub mod biquad;
+pub mod mathutil;
+pub mod nts1;
 
-/// This function is called on panic.
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    loop {}
-}
-
-const SAMPLERATE_RECIP: f32 = 2.08333333333333e-005f32;
-const SR440: f32            = 9.16666666666666e-003f32;
-const SR220: f32            = 4.58333333333333e-003f32;
-
-const k_waves_a_cnt : usize = 16;
-const k_waves_b_cnt : usize = 16;
-const k_waves_c_cnt : usize = 14;
-const k_waves_d_cnt : usize = 13;
-const k_waves_e_cnt : usize = 15;
-const k_waves_f_cnt : usize = 16;
-const k_midi_to_hz_size: usize = 152;
-const k_note_mod_fscale: f32 = 0.00392156862745098f32;
-const k_note_max_hz: f32 = 23679.643054f32;
-
-extern "C" {
-    static wavesA: [*const f32; k_waves_a_cnt];
-    static wavesD: [*const f32; k_waves_d_cnt];
-    static midi_to_hz_lut_f: [f32; k_midi_to_hz_size];
-}
-
-#[repr(C)]
-pub struct UserOscParams {
-    shape_lfo: i32,
-    pitch: u16,
-    cutoff: u16,
-    resonance: u16,
-    reserved0: [u16; 3],
-}
+use mathutil::*;
+use nts1::*;
 
 #[repr(u8)]
 pub enum RavesFlags {
@@ -166,37 +139,6 @@ impl Raves {
 }
 
 static mut S_RAVES : Raves = Raves::new();
-
-pub fn clip01f(x: f32) -> f32 {
-    if x > 1.0 { 1.0 } else if x < 0.0 { 0.0 } else { x }
-}
-
-pub fn clipmaxf(x: f32, m: f32) -> f32 {
-    if x >= m { m } else { x }
-}
-
-pub fn clipmaxu32(x: u32, m: u32) -> u32 {
-    if x >= m { m } else { x }
-}
-
-pub fn clipmaxnote(note: u8, m: usize) -> usize {
-    let unote = note as usize;
-    if unote >= m { m } else { unote }
-}
-
-pub fn linintf(fr: f32, x0: f32, x1: f32) -> f32 {
-    return x0 + fr * (x1 - x0);
-}
-
-pub fn param_val_to_f32(x: u16) -> f32 {
-    x as f32 * 9.77517106549365e-004f32
-}
-
-pub fn osc_notehzf(note: u8) -> f32 {
-    unsafe {
-        return midi_to_hz_lut_f[clipmaxnote(note, k_midi_to_hz_size - 1)];
-    }
-}
 
 #[no_mangle]
 pub extern "C" fn r_osc_w0f_for_note(note: u8, modulation: u8) -> f32{
