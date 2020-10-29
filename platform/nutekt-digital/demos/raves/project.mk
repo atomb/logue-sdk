@@ -4,13 +4,13 @@
 
 PROJECT = raves
 
-UCSRC = 
+UCSRC =
 
-UCXXSRC = waves.cpp
+UCXXSRC =
 
 UINCDIR =
 
-UDEFS = -fno-threadsafe-statics
+UDEFS =
 
 ULIBS = -lraves
 

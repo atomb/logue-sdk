@@ -106,62 +106,58 @@ void _entry(uint32_t platform, uint32_t api)
   for (; bss_p != bss_e;)
     *(bss_p++) = 0;
 
-  // Call constructors if any.  
+  // Call constructors if any.
   const size_t count = __init_array_end - __init_array_start;
   for (size_t i = 0; i<count; ++i) {
     __init_fptr init_p = (__init_fptr)__init_array_start[i];
     if (init_p != NULL)
       init_p();
   }
-  
+
   // Call user initialization
   _hook_init(platform, api);
 }
 
-__attribute__((weak))
-void _hook_init(uint32_t platform, uint32_t api)
+extern void r_osc_init(uint32_t platform, uint32_t api);
+extern void r_osc_cycle(const user_osc_param_t * const params,
+                        int32_t *yn, const uint32_t frames);
+extern void r_osc_param(uint16_t index, uint16_t value);
+extern void r_osc_noteon(const user_osc_param_t * const params);
+extern void r_osc_noteoff(const user_osc_param_t * const params);
+
+void OSC_INIT(uint32_t platform, uint32_t api)
 {
-  (void)platform;
-  (void)api;
+  r_osc_init(platform, api);
 }
 
-__attribute__((weak))
-void _hook_cycle(const user_osc_param_t * const params, int32_t *yn, const uint32_t frames)
+void OSC_CYCLE(const user_osc_param_t * const params, int32_t *yn, const uint32_t frames)
+{
+  r_osc_cycle(params, yn, frames);
+}
+
+void OSC_NOTEON(const user_osc_param_t * const params)
+{
+  r_osc_noteon(params);
+}
+
+void OSC_NOTEOFF(const user_osc_param_t * const params)
+{
+  r_osc_noteoff(params);
+}
+
+void OSC_MUTE(const user_osc_param_t * const params)
 {
   (void)params;
-  (void)yn;
-  (void)frames;
 }
 
-__attribute__((weak))
-void _hook_on(const user_osc_param_t * const params)
-{
-  (void)params;
-}
-
-__attribute__((weak))
-void _hook_off(const user_osc_param_t * const params)
-{
-  (void)params;
-}
-
-__attribute__((weak))
-void _hook_mute(const user_osc_param_t * const params)
-{
-  (void)params;
-}
-
-__attribute__((weak))
-void _hook_value(uint16_t value)
+void OSC_VALUE(uint16_t value)
 {
   (void)value;
 }
 
-__attribute__((weak))
-void _hook_param(uint16_t index, uint16_t value)
+void OSC_PARAM(uint16_t index, uint16_t value)
 {
-  (void)index;
-  (void)value;
+  r_osc_param(index, value);
 }
 
 /** @} */
