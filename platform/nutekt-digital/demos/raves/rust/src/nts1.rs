@@ -76,8 +76,8 @@ pub fn param_val_to_f32(x: u16) -> f32 {
     x as f32 * 9.77517106549365e-004f32
 }
 
-pub fn ptr_as_ref<T>(p: *const T) -> &'static T {
-    unsafe { p.as_ref().unwrap() }
+pub fn wave_table_ref(p: *const WaveLUT) -> &'static WaveLUT {
+    unsafe { &*p }
 }
 
 pub fn get_waves_a_elt(idx: usize) -> *const WaveLUT {

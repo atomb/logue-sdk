@@ -245,14 +245,13 @@ pub fn osc_cycle(raves: &mut Raves, params: &UserOscParams, yn: &mut [i32]) {
     let prelpf = &mut raves.prelpf;
     let postlpf = &mut raves.postlpf;
 
-
     for y in yn.iter_mut() {
         let wavemix = clipminmaxf(0.005, p.shape + lfoz, 0.995);
-        let mut sig = (1.0 - wavemix) * osc_wave_scanf(ptr_as_ref(s.wave0), phi0);
+        let mut sig = (1.0 - wavemix) * osc_wave_scanf(wave_table_ref(s.wave0), phi0);
 
-        sig += wavemix * osc_wave_scanf(ptr_as_ref(s.wave1), phi1);
+        sig += wavemix * osc_wave_scanf(wave_table_ref(s.wave1), phi1);
 
-        let subsig = osc_wave_scanf(ptr_as_ref(s.subwave), phisub);
+        let subsig = osc_wave_scanf(wave_table_ref(s.subwave), phisub);
 
         sig = (1.0 - submix) * sig + submix * subsig;
         sig = (1.0 - ringmix) * sig + ringmix * (subsig * sig);
