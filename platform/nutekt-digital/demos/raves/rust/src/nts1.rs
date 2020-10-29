@@ -81,27 +81,27 @@ pub fn wave_table_ref(p: *const WaveLUT) -> &'static WaveLUT {
 }
 
 pub fn get_waves_a_elt(idx: usize) -> *const WaveLUT {
-    unsafe { wavesA[idx] }
+    unsafe { *wavesA.get_unchecked(idx) }
 }
 
 pub fn get_waves_b_elt(idx: usize) -> *const WaveLUT {
-    unsafe { wavesB[idx] }
+    unsafe { *wavesB.get_unchecked(idx) }
 }
 
 pub fn get_waves_c_elt(idx: usize) -> *const WaveLUT {
-    unsafe { wavesC[idx] }
+    unsafe { *wavesC.get_unchecked(idx) }
 }
 
 pub fn get_waves_d_elt(idx: usize) -> *const WaveLUT {
-    unsafe { wavesD[idx] }
+    unsafe { *wavesD.get_unchecked(idx) }
 }
 
 pub fn get_waves_e_elt(idx: usize) -> *const WaveLUT {
-    unsafe { wavesE[idx] }
+    unsafe { *wavesE.get_unchecked(idx) }
 }
 
 pub fn get_waves_f_elt(idx: usize) -> *const WaveLUT {
-    unsafe { wavesF[idx] }
+    unsafe { *wavesF.get_unchecked(idx) }
 }
 
 pub fn osc_wave_scanf(w: &WaveLUT, x: f32) -> f32{
@@ -120,16 +120,16 @@ pub fn osc_softclipf(c: f32, x: f32) -> f32 {
 pub fn osc_bitresf(x: f32) -> f32 {
     let xf = x * K_BITRES_SIZE as f32;
     let xi = xf as usize;
-    let y0 = unsafe { bitres_lut_f[xi] };
-    let y1 = unsafe { bitres_lut_f[xi + 1] };
+    let y0 = unsafe { *bitres_lut_f.get_unchecked(xi) };
+    let y1 = unsafe { *bitres_lut_f.get_unchecked(xi + 1) };
     return linintf(xf - xi as f32, y0, y1);
 }
 
 pub fn osc_tanpif(x: f32) -> f32 {
     let idxf = x * K_TANPI_RANGE_RECIP * K_TANPI_SIZE as f32;
     let idx = idxf as usize;
-    let y0 = unsafe { tanpi_lut_f[idx] };
-    let y1 = unsafe { tanpi_lut_f[idx + 1] };
+    let y0 = unsafe { *tanpi_lut_f.get_unchecked(idx) };
+    let y1 = unsafe { *tanpi_lut_f.get_unchecked(idx + 1) };
     return linintf(idxf - idx as f32, y0, y1);
 }
 
@@ -144,5 +144,5 @@ pub fn osc_w0f_for_note(note: u8, modulation: u8) -> f32{
 /// Larger values will be clipped to 151.
 pub fn osc_notehzf(note: u8) -> f32 {
     let idx = clipmaxnote(note, K_MIDI_TO_HZ_SIZE - 1);
-    return unsafe { midi_to_hz_lut_f[idx] };
+    return unsafe { *midi_to_hz_lut_f.get_unchecked(idx) };
 }

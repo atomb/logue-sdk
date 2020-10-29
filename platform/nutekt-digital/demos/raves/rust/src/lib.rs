@@ -161,11 +161,12 @@ impl Raves {
             } else if idx < k_b_thr {
                 idx -= k_a_thr;
                 self.state.wave0 = get_waves_b_elt(idx);
-            } else if idx < k_c_thr { // This introduces one extra branch.
+            } else if idx < k_c_thr {
                 idx -= k_b_thr;
                 self.state.wave0 = get_waves_c_elt(idx);
             } else {
-                // Would be OOB, so do nothing
+                // Would be OOB, so do nothing.
+                // Having this branch actually makes the code smaller!
             }
         }
         if (flags & RavesFlags::Wave1 as u16) != 0 {
@@ -180,11 +181,12 @@ impl Raves {
             } else if idx < k_e_thr {
                 idx -= k_d_thr;
                 self.state.wave1 = get_waves_e_elt(idx);
-            } else if idx < k_f_thr { // This introduces one extra branch.
+            } else if idx < k_f_thr {
                 idx -= k_e_thr;
                 self.state.wave1 = get_waves_f_elt(idx);
             } else {
-                // Would be OOB, so do nothing
+                // Would be OOB, so do nothing.
+                // Having this branch actually makes the code smaller!
             }
         }
         if (flags & RavesFlags::SubWave as u16) != 0 {
