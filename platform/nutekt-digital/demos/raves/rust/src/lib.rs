@@ -3,6 +3,7 @@
 use panic_halt as _;
 use core::f32;
 use core::ptr;
+use core::slice;
 use micromath::F32Ext;
 
 pub mod biquad;
@@ -192,16 +193,11 @@ impl Raves {
     }
 }
 
-static mut S_RAVES : Raves = Raves::new();
-
-#[no_mangle]
-pub extern "C" fn _hook_init(_platform: u32, _api: u32) {
-    unsafe { S_RAVES.init(); }
+pub fn osc_init(raves: &mut Raves, _platform: u32, _api: u32) {
+    raves.init();
 }
 
-#[no_mangle]
-pub extern "C" fn _hook_cycle(params: &UserOscParams, yn: *mut i32, frames: u32) {
-    let raves = unsafe { &mut S_RAVES };
+pub fn osc_cycle(raves: &mut Raves, params: &UserOscParams, yn: &mut [i32]) {
     // Set pitch based on input parameters, waves based on flags
     let phi = (params.pitch >> 8) as u8;
     let plo = (params.pitch & 0xFF) as u8;
@@ -236,7 +232,7 @@ pub extern "C" fn _hook_cycle(params: &UserOscParams, yn: *mut i32, frames: u32)
     let mut phisub = s.phisub;
     let mut lfoz = s.lfoz;
 
-    let lfo_inc = (s.lfo - lfoz) / frames as f32;
+    let lfo_inc = (s.lfo - lfoz) / yn.len() as f32;
 
     //let ditheramt = p.bitcrush * 2e-008;
 
@@ -250,7 +246,7 @@ pub extern "C" fn _hook_cycle(params: &UserOscParams, yn: *mut i32, frames: u32)
     let postlpf = &mut raves.postlpf;
 
 
-    for i in 0..frames {
+    for y in yn.iter_mut() {
         let wavemix = clipminmaxf(0.005, p.shape + lfoz, 0.995);
         let mut sig = (1.0 - wavemix) * osc_wave_scanf(ptr_as_ref(s.wave0), phi0);
 
@@ -268,10 +264,7 @@ pub extern "C" fn _hook_cycle(params: &UserOscParams, yn: *mut i32, frames: u32)
         sig = postlpf.process_fo(sig);
         sig = osc_softclipf(0.125, sig);
 
-        unsafe {
-            let y = yn.offset(i as isize);
-            *y = f32_to_q31(sig);
-        }
+        *y = f32_to_q31(sig);
 
         phi0 += s.w00;
         phi0 -= (phi0 as u32) as f32;
@@ -292,27 +285,11 @@ pub extern "C" fn _hook_cycle(params: &UserOscParams, yn: *mut i32, frames: u32)
     }
 }
 
-#[no_mangle]
-pub extern "C" fn _hook_on(_params: &UserOscParams) {
-    let raves = unsafe { &mut S_RAVES };
+pub fn osc_noteon(raves: &mut Raves, _params: &UserOscParams) {
     raves.state.flags |= RavesFlags::Reset as u8;
 }
 
-#[no_mangle]
-pub extern "C" fn _hook_off(_params: &UserOscParams) {
-}
-
-#[no_mangle]
-pub extern "C" fn _hook_mute(_params: &UserOscParams) {
-}
-
-#[no_mangle]
-pub extern "C" fn _hook_value(_value: u16) {
-}
-
-#[no_mangle]
-pub extern "C" fn _hook_param(index: UserOscParamId, value: u16) {
-    let raves = unsafe { &mut S_RAVES };
+pub fn osc_param(raves: &mut Raves, index: UserOscParamId, value: u16) {
     let p : &mut RavesParams = &mut raves.params;
     let s : &mut RavesState = &mut raves.state;
 
@@ -348,4 +325,42 @@ pub extern "C" fn _hook_param(index: UserOscParamId, value: u16) {
             p.shiftshape = 1.0 + param_val_to_f32(value);
         },
     }
+}
+
+/// Unsafe external API
+
+/// Global Raves state. Safe to access from the functions below because
+/// they can never be called concurrently.
+static mut S_RAVES : Raves = Raves::new();
+
+#[no_mangle]
+unsafe extern "C" fn _hook_init(platform: u32, api: u32) {
+    osc_init(&mut S_RAVES, platform, api);
+}
+
+#[no_mangle]
+unsafe extern "C" fn _hook_cycle(params: &UserOscParams, yn: *mut i32, frames: u32) {
+    osc_cycle(&mut S_RAVES, params, slice::from_raw_parts_mut(yn, frames as usize));
+}
+
+#[no_mangle]
+unsafe extern "C" fn _hook_on(params: &UserOscParams) {
+    osc_noteon(&mut S_RAVES, params);
+}
+
+#[no_mangle]
+unsafe extern "C" fn _hook_off(_params: &UserOscParams) {
+}
+
+#[no_mangle]
+unsafe extern "C" fn _hook_mute(_params: &UserOscParams) {
+}
+
+#[no_mangle]
+unsafe extern "C" fn _hook_value(_value: u16) {
+}
+
+#[no_mangle]
+unsafe extern "C" fn _hook_param(index: UserOscParamId, value: u16) {
+    osc_param(&mut S_RAVES, index, value);
 }
