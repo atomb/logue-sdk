@@ -11,6 +11,7 @@ pub mod nts1;
 
 use mathutil::*;
 use nts1::*;
+use nts1::userosc::*;
 
 #[repr(u8)]
 pub enum RavesFlags {
@@ -52,9 +53,9 @@ impl RavesState {
             phi0: 0.0,
             phi1: 0.0,
             phisub: 0.0,
-            w00: SR440,
-            w01: SR440,
-            w0sub: SR220,
+            w00: K_SR440,
+            w01: K_SR440,
+            w0sub: K_SR220,
             lfo: 0.0,
             lfoz: 0.0,
             dither: 0.0,
@@ -66,10 +67,10 @@ impl RavesState {
     }
 
     pub fn init(&mut self) {
-        self.wave0 = unsafe { wavesA[0] };
-        self.wave1 = unsafe { wavesD[0] };
-        self.subwave = unsafe { wavesA[0] };
-        self.imperfection = unsafe { _osc_white() } * 1.0417e-006;
+        self.wave0 = get_waves_a_elt(0);
+        self.wave1 = get_waves_d_elt(0);
+        self.subwave = get_waves_a_elt(0);
+        self.imperfection = osc_white() * 1.0417e-006;
     }
 
     pub fn reset(&mut self) {
@@ -155,13 +156,13 @@ impl Raves {
             let mut idx = self.params.wave0 as usize;
 
             if idx < k_a_thr {
-                self.state.wave0 = unsafe { wavesA[idx] };
+                self.state.wave0 = get_waves_a_elt(idx);
             } else if idx < k_b_thr {
                 idx -= k_a_thr;
-                self.state.wave0 = unsafe { wavesB[idx] };
-            } else if idx < k_c_thr {
+                self.state.wave0 = get_waves_b_elt(idx);
+            } else if idx < k_c_thr { // This introduces one extra branch.
                 idx -= k_b_thr;
-                self.state.wave0 = unsafe { wavesC[idx] };
+                self.state.wave0 = get_waves_c_elt(idx);
             } else {
                 // Would be OOB, so do nothing
             }
@@ -174,19 +175,19 @@ impl Raves {
             let mut idx = self.params.wave1 as usize;
 
             if idx < k_d_thr {
-                self.state.wave1 = unsafe { wavesD[idx] };
+                self.state.wave1 = get_waves_d_elt(idx);
             } else if idx < k_e_thr {
                 idx -= k_d_thr;
-                self.state.wave1 = unsafe { wavesE[idx] };
-            } else if idx < k_f_thr {
+                self.state.wave1 = get_waves_e_elt(idx);
+            } else if idx < k_f_thr { // This introduces one extra branch.
                 idx -= k_e_thr;
-                self.state.wave1 = unsafe { wavesF[idx] };
+                self.state.wave1 = get_waves_f_elt(idx);
             } else {
                 // Would be OOB, so do nothing
             }
         }
         if (flags & RavesFlags::SubWave as u16) != 0 {
-            self.state.subwave = unsafe { wavesA[self.params.subwave as usize] };
+            self.state.subwave = get_waves_a_elt(self.params.subwave as usize);
         }
     }
 }
@@ -205,7 +206,7 @@ pub extern "C" fn r_osc_cycle(params: &UserOscParams, yn: *mut i32, frames: u32)
     let phi = (params.pitch >> 8) as u8;
     let plo = (params.pitch & 0xFF) as u8;
     let flags = raves.state.flags;
-    raves.update_pitch(r_osc_w0f_for_note(phi, plo));
+    raves.update_pitch(osc_w0f_for_note(phi, plo));
     raves.update_waves(flags as u16);
 
     let p : &RavesParams = &raves.params;
@@ -262,7 +263,7 @@ pub extern "C" fn r_osc_cycle(params: &UserOscParams, yn: *mut i32, frames: u32)
         sig = clip1m1f(sig);
 
         sig = prelpf.process_fo(sig);
-        sig += s.dither * unsafe { _osc_white() };
+        sig += s.dither * osc_white();
         sig = (sig * s.bitres).round() * s.bitresrcp;
         sig = postlpf.process_fo(sig);
         sig = osc_softclipf(0.125, sig);

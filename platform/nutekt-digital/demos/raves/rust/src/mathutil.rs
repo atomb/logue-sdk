@@ -1,4 +1,5 @@
-const Q31_TO_F32_C : f32 = 4.65661287307739e-010f32;
+const F32_TO_Q31_C : u32 = 0x7FFFFFFF; // 2^31
+const Q31_TO_F32_C : f32 = 4.65661287307739e-010f32; // 1 / 2^31
 
 pub fn clip01f(x: f32) -> f32 {
     if x > 1.0 { 1.0 } else if x < 0.0 { 0.0 } else { x }
@@ -34,5 +35,5 @@ pub fn q31_to_f32(x: i32) -> f32 {
 }
 
 pub fn f32_to_q31(x: f32) -> i32 {
-    (x * 0x7FFFFFFF as f32) as i32
+    (x * F32_TO_Q31_C as f32) as i32
 }
