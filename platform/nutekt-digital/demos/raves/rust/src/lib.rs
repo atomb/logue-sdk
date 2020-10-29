@@ -23,23 +23,11 @@ pub enum RavesFlags {
     Reset    = 1 << 6,
 }
 
-#[repr(u16)]
-pub enum UserOscParamId {
-    Id1 = 0,
-    Id2,
-    Id3,
-    Id4,
-    Id5,
-    Id6,
-    Shape,
-    ShiftShape,
-}
-
 #[repr(C)]
 pub struct RavesState {
-    wave0: *const [f32; K_WAVES_LUT_SIZE],
-    wave1: *const [f32; K_WAVES_LUT_SIZE],
-    subwave: *const [f32; K_WAVES_LUT_SIZE],
+    wave0: *const WaveLUT,
+    wave1: *const WaveLUT,
+    subwave: *const WaveLUT,
     phi0: f32,
     phi1: f32,
     phisub: f32,

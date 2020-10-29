@@ -42,7 +42,19 @@ pub struct UserOscParams {
     pub reserved0: [u16; 3],
 }
 
-type WaveLUT = [f32; K_WAVES_LUT_SIZE];
+#[repr(u16)]
+pub enum UserOscParamId {
+    Id1 = 0,
+    Id2,
+    Id3,
+    Id4,
+    Id5,
+    Id6,
+    Shape,
+    ShiftShape,
+}
+
+pub type WaveLUT = [f32; K_WAVES_LUT_SIZE];
 
 extern "C" {
     pub static wavesA: [*const WaveLUT; K_WAVES_A_CNT];
