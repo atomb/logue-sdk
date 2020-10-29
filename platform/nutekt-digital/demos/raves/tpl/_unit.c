@@ -58,6 +58,15 @@ extern void (*__init_array_end []) (void);
 
 typedef void (*__init_fptr)(void);
 
+extern void OSC_INIT(uint32_t platform, uint32_t api);
+extern void OSC_CYCLE(const user_osc_param_t * const params,
+                      int32_t *yn, const uint32_t frames);
+extern void OSC_NOTEON(const user_osc_param_t * const params);
+extern void OSC_NOTEOFF(const user_osc_param_t * const params);
+extern void OSC_MUTE(const user_osc_param_t * const params);
+extern void OSC_VALUE(uint16_t value);
+extern void OSC_PARAM(uint16_t index, uint16_t value);
+
 /** @} */
 
 /*===========================================================================*/
@@ -116,48 +125,6 @@ void _entry(uint32_t platform, uint32_t api)
 
   // Call user initialization
   _hook_init(platform, api);
-}
-
-extern void r_osc_init(uint32_t platform, uint32_t api);
-extern void r_osc_cycle(const user_osc_param_t * const params,
-                        int32_t *yn, const uint32_t frames);
-extern void r_osc_param(uint16_t index, uint16_t value);
-extern void r_osc_noteon(const user_osc_param_t * const params);
-extern void r_osc_noteoff(const user_osc_param_t * const params);
-
-void OSC_INIT(uint32_t platform, uint32_t api)
-{
-  r_osc_init(platform, api);
-}
-
-void OSC_CYCLE(const user_osc_param_t * const params, int32_t *yn, const uint32_t frames)
-{
-  r_osc_cycle(params, yn, frames);
-}
-
-void OSC_NOTEON(const user_osc_param_t * const params)
-{
-  r_osc_noteon(params);
-}
-
-void OSC_NOTEOFF(const user_osc_param_t * const params)
-{
-  r_osc_noteoff(params);
-}
-
-void OSC_MUTE(const user_osc_param_t * const params)
-{
-  (void)params;
-}
-
-void OSC_VALUE(uint16_t value)
-{
-  (void)value;
-}
-
-void OSC_PARAM(uint16_t index, uint16_t value)
-{
-  r_osc_param(index, value);
 }
 
 /** @} */
