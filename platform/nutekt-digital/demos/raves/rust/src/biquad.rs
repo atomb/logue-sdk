@@ -39,7 +39,7 @@ impl Coeffs {
 pub struct BiQuad {
     pub coeffs: Coeffs,
     z1: f32,
-    z2: f32,
+    // z2: f32, // Included in C++ but unused in the code ported so far
 }
 
 impl BiQuad {
@@ -47,7 +47,7 @@ impl BiQuad {
         BiQuad {
             coeffs: Coeffs::new(),
             z1: 0.0,
-            z2: 0.0,
+            //z2: 0.0,
         }
     }
 
