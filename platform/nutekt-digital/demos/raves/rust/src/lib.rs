@@ -203,21 +203,16 @@ impl Raves {
     }
 }
 
-//static mut S_RAVES : Raves = Raves::new();
+static mut S_RAVES : Raves = Raves::new();
 
 #[no_mangle]
-pub extern "C" fn r_osc_init(_raves: &mut Raves, _platform: u32, _api: u32) {
-    /*
-    unsafe {
-        S_RAVES.init();
-    }
-    */
+pub extern "C" fn r_osc_init(_platform: u32, _api: u32) {
+    unsafe { S_RAVES.init(); }
 }
 
 #[no_mangle]
-pub extern "C" fn r_osc_cycle(raves: &mut Raves, params: &UserOscParams,
-                              yn: *mut i32, frames: u32) {
-
+pub extern "C" fn r_osc_cycle(params: &UserOscParams, yn: *mut i32, frames: u32) {
+    let raves = unsafe { &mut S_RAVES };
     // Set pitch based on input parameters, waves based on flags
     let phi = (params.pitch >> 8) as u8;
     let plo = (params.pitch & 0xFF) as u8;
@@ -309,16 +304,18 @@ pub extern "C" fn r_osc_cycle(raves: &mut Raves, params: &UserOscParams,
 }
 
 #[no_mangle]
-pub extern "C" fn r_osc_noteon(raves: &mut Raves, _params: &UserOscParams) {
+pub extern "C" fn r_osc_noteon(_params: &UserOscParams) {
+    let raves = unsafe { &mut S_RAVES };
     raves.state.flags |= RavesFlags::Reset as u8;
 }
 
 #[no_mangle]
-pub extern "C" fn r_osc_noteoff(_raves: &mut Raves, _params: &UserOscParams) {
+pub extern "C" fn r_osc_noteoff(_params: &UserOscParams) {
 }
 
 #[no_mangle]
-pub extern "C" fn r_osc_param(raves: &mut Raves, index: UserOscParamId, value: u16) {
+pub extern "C" fn r_osc_param(index: UserOscParamId, value: u16) {
+    let raves = unsafe { &mut S_RAVES };
     let p : &mut RavesParams = &mut raves.params;
     let s : &mut RavesState = &mut raves.state;
 

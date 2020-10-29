@@ -39,34 +39,38 @@
  */
 
 #include "userosc.h"
-#include "waves.hpp"
 
-static Waves s_waves;
+extern "C" {
+  void r_osc_init(uint32_t platform, uint32_t api);
+  void r_osc_cycle(const user_osc_param_t * const params, int32_t *yn, const uint32_t frames);
+  void r_osc_param(uint16_t index, uint16_t value);
+  void r_osc_noteon(const user_osc_param_t * const params);
+  void r_osc_noteoff(const user_osc_param_t * const params);
+}
 
 void OSC_INIT(uint32_t platform, uint32_t api)
 {
-  r_osc_init(&s_waves, platform, api);
+  r_osc_init(platform, api);
 }
 
 void OSC_CYCLE(const user_osc_param_t * const params,
                int32_t *yn,
                const uint32_t frames)
 {
-  r_osc_cycle(&s_waves, params, yn, frames);
+  r_osc_cycle(params, yn, frames);
 }
 
 void OSC_NOTEON(const user_osc_param_t * const params)
 {
-  r_osc_noteon(&s_waves, params);
+  r_osc_noteon(params);
 }
 
 void OSC_NOTEOFF(const user_osc_param_t * const params)
 {
-  r_osc_noteoff(&s_waves, params);
+  r_osc_noteoff(params);
 }
 
 void OSC_PARAM(uint16_t index, uint16_t value)
 {
-  r_osc_param(&s_waves, index, value);
+  r_osc_param(index, value);
 }
-
