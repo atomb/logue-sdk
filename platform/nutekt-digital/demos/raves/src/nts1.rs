@@ -30,6 +30,7 @@ pub const K_WAVES_E_CNT : usize = 15;
 pub const K_WAVES_F_CNT : usize = 16;
 
 pub mod platform;
+pub mod random;
 pub mod userosc;
 
 use platform::*;
@@ -46,12 +47,6 @@ extern "C" {
     static midi_to_hz_lut_f: [f32; K_MIDI_TO_HZ_SIZE];
     static bitres_lut_f: [f32; K_BITRES_LUT_SIZE];
     static tanpi_lut_f: [f32; K_TANPI_LUT_SIZE];
-    fn _osc_white() -> f32;
-}
-
-/// Gaussian white noise. Returns a value in [-1.0, 1.0].
-pub fn osc_white() -> f32 {
-    unsafe { _osc_white() }
 }
 
 /// Convert 10-bit parameter value to f32
