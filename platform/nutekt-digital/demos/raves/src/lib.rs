@@ -14,6 +14,7 @@ use nts1::*;
 use nts1::platform::*;
 use nts1::random::osc_white;
 use nts1::userosc::*;
+use nts1::wavebank::*;
 
 #[repr(u8)]
 pub enum RavesFlags {
