@@ -15,6 +15,7 @@ pub const K_TANPI_MASK: usize = K_TANPI_SIZE - 1;
 pub const K_TANPI_RANGE_RECIP: f32 = 2.04081632653061; // 1/0.49
 pub const K_TANPI_LUT_SIZE: usize = K_TANPI_SIZE + 1;
 
+pub mod clipsat;
 pub mod platform;
 pub mod random;
 pub mod userosc;
@@ -31,11 +32,6 @@ extern "C" {
 /// Convert 10-bit parameter value to f32
 pub fn param_val_to_f32(x: u16) -> f32 {
     x as f32 * 9.77517106549365e-004f32
-}
-
-pub fn osc_softclipf(c: f32, x: f32) -> f32 {
-    let x = clip1m1f(x);
-    return x - c * (x*x*x);
 }
 
 pub fn osc_bitresf(x: f32) -> f32 {

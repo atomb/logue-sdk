@@ -11,6 +11,7 @@ pub mod nts1;
 
 use mathutil::*;
 use nts1::*;
+use nts1::clipsat::osc_softclipf;
 use nts1::platform::*;
 use nts1::random::osc_white;
 use nts1::userosc::*;
