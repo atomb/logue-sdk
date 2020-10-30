@@ -5,10 +5,11 @@ use core::f32;
 use core::ptr;
 use micromath::F32Ext;
 
-pub mod biquad;
+pub mod dsp;
 pub mod mathutil;
 pub mod nts1;
 
+use dsp::biquad;
 use mathutil::*;
 use nts1::*;
 use nts1::clipsat::osc_softclipf;
