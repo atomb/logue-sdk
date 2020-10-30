@@ -295,30 +295,37 @@ pub fn osc_param(raves: &mut Raves, index: UserOscParamId, value: u16) {
 
     match index {
         UserOscParamId::Id1 => {
+            // Wave 0
             let cnt : usize = K_WAVES_A_CNT + K_WAVES_B_CNT + K_WAVES_C_CNT;
-            p.wave1 = (value % cnt as u16) as u8;
+            p.wave0 = (value % cnt as u16) as u8;
             s.flags |= RavesFlags::Wave0 as u8;
         },
         UserOscParamId::Id2 => {
+            // Wave 1
             let cnt : usize = K_WAVES_D_CNT + K_WAVES_E_CNT + K_WAVES_F_CNT;
             p.wave1 = (value % cnt as u16) as u8;
             s.flags |= RavesFlags::Wave1 as u8;
         },
         UserOscParamId::Id3 => {
+            // Sub wave
             p.subwave = (value % K_WAVES_A_CNT as u16) as u8;
             s.flags |= RavesFlags::SubWave as u8;
         },
         UserOscParamId::Id4 => {
+            // Sub mix
             p.submix = clip01f(0.05 + (value as f32 * 0.01 * 0.90));
         },
         UserOscParamId::Id5 => {
+            // Ring mix
             p.ringmix = clip01f(value as f32 * 0.01);
         },
         UserOscParamId::Id6 => {
+            // Bit crush
             p.bitcrush = clip01f(value as f32 * 0.01);
             s.flags |= RavesFlags::BitCrush as u8;
         },
         UserOscParamId::Shape => {
+            // 10-bit parameter
             p.shape = param_val_to_f32(value);
         },
         UserOscParamId::ShiftShape => {
