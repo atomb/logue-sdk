@@ -6,9 +6,9 @@ fn main() {
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
     File::create(out.join("userosc.x"))
         .unwrap()
-        .write_all(include_bytes!("userosc.x"))
+        .write_all(include_bytes!("scripts/userosc.x"))
         .unwrap();
     println!("cargo:rustc-link-search={}", out.display());
-    println!("cargo:rerun-if-changed=userosc.x");
+    println!("cargo:rerun-if-changed=scripts/userosc.x");
     println!("cargo:rerun-if-changed=build.rs");
 }
