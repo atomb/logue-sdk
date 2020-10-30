@@ -22,7 +22,7 @@ static s_hook_table: UserOscHookTable =
       magic: ['U' as u8, 'O' as u8, 'S' as u8, 'C' as u8],
       api: USER_API_VERSION,
       platform: (USER_TARGET_PLATFORM>>8) as u8,
-      reserved0: [0; 7],
+      reserved0: DEFAULT_RESERVED0,
       func_entry: _hook_init,
       func_cycle: _hook_cycle,
       func_on: _hook_on,
@@ -30,7 +30,7 @@ static s_hook_table: UserOscHookTable =
       func_mute: _hook_mute,
       func_value: _hook_value,
       func_param: _hook_param,
-      reserved1: [0; 5],
+      reserved1: DEFAULT_RESERVED1,
   };
 
 #[no_mangle]

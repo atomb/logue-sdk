@@ -1,3 +1,5 @@
+use core::mem;
+
 #[repr(C)]
 pub struct UserOscParams {
     pub shape_lfo: i32,
@@ -26,6 +28,11 @@ type OffCallback = unsafe extern "C" fn(params: &UserOscParams);
 type MuteCallback = unsafe extern "C" fn(params: &UserOscParams);
 type ValueCallback = unsafe extern "C" fn(value: u16);
 type ParamCallback = unsafe extern "C" fn(index: UserOscParamId, value: u16);
+type DummyCallback = unsafe extern "C" fn();
+
+pub const DEFAULT_RESERVED0: [u8; 7] = [0; 7];
+pub const DEFAULT_RESERVED1: [u8; 5*mem::size_of::<DummyCallback>()] =
+    [0; 5*mem::size_of::<DummyCallback>()];
 
 #[repr(C)]
 #[repr(packed)]
@@ -41,5 +48,7 @@ pub struct UserOscHookTable {
     pub func_mute: MuteCallback,
     pub func_value: ValueCallback,
     pub func_param: ParamCallback,
-    pub reserved1: [u8; 5],
+    //pub reserved1: [DummyCallback; 5],
+    // Use bytes for the following so it can be zeroed
+    pub reserved1: [u8; 5*mem::size_of::<DummyCallback>()],
 }
