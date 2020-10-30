@@ -3,7 +3,6 @@
 use panic_halt as _;
 use core::f32;
 use core::ptr;
-use core::slice;
 use micromath::F32Ext;
 
 pub mod biquad;
@@ -326,42 +325,4 @@ pub fn osc_param(raves: &mut Raves, index: UserOscParamId, value: u16) {
             p.shiftshape = 1.0 + param_val_to_f32(value);
         },
     }
-}
-
-/// Unsafe external API
-
-/// Global Raves state. Safe to access from the functions below because
-/// they can never be called concurrently.
-static mut S_RAVES : Raves = Raves::new();
-
-#[no_mangle]
-unsafe extern "C" fn _hook_init(platform: u32, api: u32) {
-    osc_init(&mut S_RAVES, platform, api);
-}
-
-#[no_mangle]
-unsafe extern "C" fn _hook_cycle(params: &UserOscParams, yn: *mut i32, frames: u32) {
-    osc_cycle(&mut S_RAVES, params, slice::from_raw_parts_mut(yn, frames as usize));
-}
-
-#[no_mangle]
-unsafe extern "C" fn _hook_on(params: &UserOscParams) {
-    osc_noteon(&mut S_RAVES, params);
-}
-
-#[no_mangle]
-unsafe extern "C" fn _hook_off(_params: &UserOscParams) {
-}
-
-#[no_mangle]
-unsafe extern "C" fn _hook_mute(_params: &UserOscParams) {
-}
-
-#[no_mangle]
-unsafe extern "C" fn _hook_value(_value: u16) {
-}
-
-#[no_mangle]
-unsafe extern "C" fn _hook_param(index: UserOscParamId, value: u16) {
-    osc_param(&mut S_RAVES, index, value);
 }

@@ -1,3 +1,5 @@
 [build]
 target = "thumbv7em-none-eabihf"
-rustflags = ["-C", "target-cpu=cortex-m4", "-C", "target-feature=+dsp,+vfp4d16sp"]
+rustflags = ["-C", "target-cpu=cortex-m4",
+             "-C", "target-feature=+dsp,+vfp4d16sp",
+             "-C", "link-arg=--script=userosc.x"]

@@ -8,10 +8,6 @@ edition = "2018"
 micromath = "1.1.0"
 panic-halt = "0.2.0"
 
-[lib]
-name = "raves"
-crate-type = ["staticlib"]
-
 # the profile used for `cargo build`
 [profile.dev]
 panic = "abort" # disable stack unwinding on panic

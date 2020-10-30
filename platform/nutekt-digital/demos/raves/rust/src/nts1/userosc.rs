@@ -18,3 +18,28 @@ pub enum UserOscParamId {
     Shape,
     ShiftShape,
 }
+
+type InitCallback = unsafe extern "C" fn(platform: u32, api: u32);
+type CycleCallback = unsafe extern "C" fn(params: &UserOscParams, yn: *mut i32, frames: u32);
+type OnCallback = unsafe extern "C" fn(params: &UserOscParams);
+type OffCallback = unsafe extern "C" fn(params: &UserOscParams);
+type MuteCallback = unsafe extern "C" fn(params: &UserOscParams);
+type ValueCallback = unsafe extern "C" fn(value: u16);
+type ParamCallback = unsafe extern "C" fn(index: UserOscParamId, value: u16);
+
+#[repr(C)]
+#[repr(packed)]
+pub struct UserOscHookTable {
+    pub magic: [u8; 4],
+    pub api: u32,
+    pub platform: u8,
+    pub reserved0: [u8; 7],
+    pub func_entry: InitCallback,
+    pub func_cycle: CycleCallback,
+    pub func_on: OnCallback,
+    pub func_off: OffCallback,
+    pub func_mute: MuteCallback,
+    pub func_value: ValueCallback,
+    pub func_param: ParamCallback,
+    pub reserved1: [u8; 5],
+}
