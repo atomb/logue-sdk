@@ -29,11 +29,6 @@ extern "C" {
     static tanpi_lut_f: [f32; K_TANPI_LUT_SIZE];
 }
 
-/// Convert 10-bit parameter value to f32
-pub fn param_val_to_f32(x: u16) -> f32 {
-    x as f32 * 9.77517106549365e-004f32
-}
-
 pub fn osc_bitresf(x: f32) -> f32 {
     let xf = x * K_BITRES_SIZE as f32;
     let xi = xf as usize;
