@@ -1,14 +1,5 @@
 use crate::mathutil::*;
 
-/// The inverse of the 48,000 Hz sample rate used in the NTS-1.
-pub const K_SAMPLERATE_RECIP: f32 = 2.08333333333333e-005f32;
-
-/// SAMPLERATE_RECIP multiplied by 440.0, since FP math isn't allowed in const fns.
-pub const K_SR440: f32            = 9.16666666666666e-003f32;
-
-/// SAMPLERATE_RECIP multiplied by 220.0, since FP math isn't allowed in const fns.
-pub const K_SR220: f32            = 4.58333333333333e-003f32;
-
 pub const K_MIDI_TO_HZ_SIZE: usize = 152;
 pub const K_NOTE_MOD_FSCALE: f32 = 0.00392156862745098f32;
 pub const K_NOTE_MAX_HZ: f32 = 23679.643054f32;
@@ -38,22 +29,14 @@ pub const K_WAVES_D_CNT : usize = 13;
 pub const K_WAVES_E_CNT : usize = 15;
 pub const K_WAVES_F_CNT : usize = 16;
 
+pub mod platform;
 pub mod userosc;
+
+use platform::*;
 
 pub type WaveLUT = [f32; K_WAVES_LUT_SIZE];
 
-// The external symbols exported by the NTS-1 firmware.
 extern "C" {
-
-    /// Current platform
-    pub static k_osc_api_platform: u32;
-
-    /// Current API version
-    pub static k_osc_api_version: u32;
-
-    /// Get a MCU-specific "unique" hash.
-    fn _osc_mcu_hash() -> u32;
-
     static wavesA: [*const WaveLUT; K_WAVES_A_CNT];
     static wavesB: [*const WaveLUT; K_WAVES_B_CNT];
     static wavesC: [*const WaveLUT; K_WAVES_C_CNT];

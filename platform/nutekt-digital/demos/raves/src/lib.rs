@@ -11,6 +11,7 @@ pub mod nts1;
 
 use mathutil::*;
 use nts1::*;
+use nts1::platform::*;
 use nts1::userosc::*;
 
 #[repr(u8)]
